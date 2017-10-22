@@ -7,6 +7,8 @@ defmodule Discuss.User do
     field :portrait_url, :string
     field :token, :string
     field :provider, :string
+    has_many :topics, Discuss.Topic
+    
     timestamps()
   end
 
