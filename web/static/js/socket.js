@@ -54,12 +54,35 @@ let socket = new Socket("/socket", {params: {token: window.userToken}})
 
 socket.connect()
 
+const commentTemplate = (comment) => (
+  `
+    <li class="collection-item">
+      ${comment.content}
+    </li>
+  `
+);
+
+const renderComments = (resp) => {
+  const comments = resp.comments || [];
+  const renderedComments = comments.map(comment => {
+    return commentTemplate(comment);
+  });
+  document.querySelector('.collection').innerHTML = renderedComments.join('');
+};
+
+const renderComment = (resp) => {
+  const renderedComment = commentTemplate(resp.comment);
+  document.querySelector('.collection').innerHTML += renderedComment;
+};
+
 // Now that you are connected, you can join channels with a topic:
 const createSocket = (topicId) => {
   let channel = socket.channel(`comments:${topicId}`, {})
   channel.join()
-    .receive("ok", resp => { console.log("Joined successfully", resp) })
+    .receive("ok", renderComments)
     .receive("error", resp => { console.log("Unable to join", resp) });
+
+  channel.on(`comments:${topicId}:new`, renderComment);
   document.querySelector('button').addEventListener('click', () => {
     const content = document.querySelector('textarea').value;
     channel.push('comment:add', { content })
